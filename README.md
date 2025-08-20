@@ -56,7 +56,9 @@ python app.py
 App will run at 👉 http://127.0.0.1:5000
 
 📸 Screenshots
+
 **Web Interface**
+
 <img width="500" height="1000" alt="dynamic-pricing-simulator onrender com_" src="https://github.com/user-attachments/assets/5ce9ea30-17cb-4e7a-abe5-9e91508a24d5" />
 
 🛠️ Tech Stack
