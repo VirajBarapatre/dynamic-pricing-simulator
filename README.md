@@ -17,18 +17,20 @@ An **AI-powered simulator** that predicts **demand, revenue, and profit** for pr
 ---
 
 ## 📂 Project Structure
+```
 ai-dynamic-pricing-simulator/
-├── app.py # Main Flask app
+├── app.py                  # Main Flask app
 ├── extended_retail_data.py # Generates synthetic dataset
-├── requirements.txt # Python dependencies
-├── README.md # Project documentation
-├── .gitignore # Ignore cache & venv files
+├── requirements.txt        # Python dependencies
+├── README.md               # Project documentation
+├── .gitignore              # Ignore cache & venv files
 │
 ├── data/
-│ └── extended_retail_data.csv # Generated dataset (optional, can regenerate)
+│   └── extended_retail_data.csv   # Generated dataset (optional, can regenerate)
 │
 ├── templates/
-│ └── index.html # Frontend page
+│   └── index.html          # Frontend page
+```
 
 ---
 ## ⚡ How to Run Locally
