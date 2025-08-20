@@ -24,12 +24,18 @@
                     🚀 AI Dynamic Pricing Simulator
                 </h1>
                 <p class="mt-2 text-lg text-gray-600 dark:text-gray-400">
-                    Predict demand and find the optimal price to maximize revenue.
+                    Predict demand and find the optimal price to maximize profit.
                 </p>
             </div>
 
             <div class="bg-white dark:bg-gray-800 shadow-xl rounded-2xl p-8 space-y-6">
                 <form id="pricing-form" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- New input for Unit Cost -->
+                    <div class="col-span-2">
+                        <label for="unit_cost" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Cost per Unit ($)</label>
+                        <input type="number" name="unit_cost" id="unit_cost" value="100" step="0.01" required
+                               class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-3">
+                    </div>
                     <!-- Form Inputs -->
                     <div class="col-span-1">
                         <label for="unit_price" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Your Price ($)</label>
@@ -96,6 +102,7 @@
                         <div class="mt-2 text-lg">
                             <p>Predicted Demand: <span class="font-semibold" id="user-demand"></span> units</p>
                             <p>Expected Revenue: <span class="font-semibold" id="user-revenue"></span></p>
+                            <p>Expected Profit: <span class="font-semibold" id="user-profit"></span></p>
                         </div>
                     </div>
 
@@ -105,13 +112,13 @@
                         <div class="mt-2 text-lg">
                             <p>Optimal Price: <span class="font-semibold text-2xl" id="optimal-price"></span></p>
                             <p>Max Predicted Demand: <span class="font-semibold" id="optimal-demand"></span> units</p>
-                            <p>Max Expected Revenue: <span class="font-semibold" id="optimal-revenue"></span></p>
+                            <p>Max Expected Profit: <span class="font-semibold" id="optimal-profit"></span></p>
                         </div>
                     </div>
                     
                     <!-- Plot Section -->
                     <div class="bg-gray-50 dark:bg-gray-900 rounded-2xl p-6 shadow-md relative w-full h-96">
-                        <h4 class="text-xl font-bold text-center mb-4">Demand & Revenue Curves</h4>
+                        <h4 class="text-xl font-bold text-center mb-4">Demand & Profit Curves</h4>
                         <canvas id="pricing-chart" class="w-full h-full"></canvas>
                     </div>
                 </div>
@@ -134,9 +141,10 @@
         
         const userDemandSpan = document.getElementById('user-demand');
         const userRevenueSpan = document.getElementById('user-revenue');
+        const userProfitSpan = document.getElementById('user-profit');
         const optimalPriceSpan = document.getElementById('optimal-price');
         const optimalDemandSpan = document.getElementById('optimal-demand');
-        const optimalRevenueSpan = document.getElementById('optimal-revenue');
+        const optimalProfitSpan = document.getElementById('optimal-profit');
         
         let chart = null;
 
@@ -151,7 +159,7 @@
             const formData = new FormData(form);
             
             try {
-                const response = await fetch('/predict', {
+                const response = await fetch(window.location.origin + '/predict', {
                     method: 'POST',
                     body: formData
                 });
@@ -167,10 +175,11 @@
                     // Update the UI with prediction results
                     userDemandSpan.textContent = data.user_prediction.demand;
                     userRevenueSpan.textContent = `$${data.user_prediction.revenue.toFixed(2)}`;
+                    userProfitSpan.textContent = `$${data.user_prediction.profit.toFixed(2)}`;
                     
                     optimalPriceSpan.textContent = `$${data.optimal_prediction.optimal_price.toFixed(2)}`;
                     optimalDemandSpan.textContent = data.optimal_prediction.optimal_demand;
-                    optimalRevenueSpan.textContent = `$${data.optimal_prediction.max_revenue.toFixed(2)}`;
+                    optimalProfitSpan.textContent = `$${data.optimal_prediction.max_profit.toFixed(2)}`;
 
                     // Find index of user's price and optimal price for plot
                     const prices = data.plot_data.prices;
@@ -190,13 +199,12 @@
                             tension: 0.4
                         },
                         {
-                            label: 'Predicted Revenue',
-                            data: data.plot_data.revenue,
+                            label: 'Predicted Profit',
+                            data: data.plot_data.profit,
                             borderColor: 'rgb(16, 185, 129)',
                             backgroundColor: 'rgba(16, 185, 129, 0.2)',
-                            yAxisID: 'y_revenue',
-                            tension: 0.4,
-                            hidden: false
+                            yAxisID: 'y_profit',
+                            tension: 0.4
                         }
                     ];
 
@@ -205,7 +213,7 @@
                     if (userPriceIndex !== -1) {
                         scatterPoints.push({
                             x: prices[userPriceIndex],
-                            y: data.plot_data.revenue[userPriceIndex],
+                            y: data.plot_data.profit[userPriceIndex],
                             r: 8
                         });
                     }
@@ -213,7 +221,7 @@
                     if (optimalPriceIndex !== -1) {
                         scatterPoints.push({
                             x: prices[optimalPriceIndex],
-                            y: data.plot_data.revenue[optimalPriceIndex],
+                            y: data.plot_data.profit[optimalPriceIndex],
                             r: 8
                         });
                     }
@@ -255,7 +263,7 @@
                                 plugins: {
                                     title: {
                                         display: true,
-                                        text: 'Revenue vs. Price Curve',
+                                        text: 'Profit vs. Price Curve',
                                         font: {
                                             size: 16
                                         }
@@ -284,13 +292,13 @@
                                             text: 'Predicted Demand (units)'
                                         }
                                     },
-                                    y_revenue: {
+                                    y_profit: {
                                         type: 'linear',
                                         display: true,
                                         position: 'right',
                                         title: {
                                             display: true,
-                                            text: 'Predicted Revenue ($)'
+                                            text: 'Predicted Profit ($)'
                                         },
                                         grid: {
                                             drawOnChartArea: false,
