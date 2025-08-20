@@ -12,89 +12,105 @@
     <style>
         body {
             font-family: 'Inter', sans-serif;
+            background: linear-gradient(180deg, #0f172a 0%, #1e3a8a 100%);
+        }
+        .btn-animate:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
     </style>
 </head>
-<body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200">
+<body class="text-gray-200">
 
     <div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div class="max-w-4xl w-full space-y-8">
-            <div class="text-center">
-                <h1 class="text-4xl font-extrabold text-gray-900 dark:text-white">
-                    🚀 AI Dynamic Pricing Simulator
+            <!-- Hero Section -->
+            <div class="text-center mb-12">
+                <h1 class="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-200 to-white">
+                     AI Dynamic Pricing Simulator
                 </h1>
-                <p class="mt-2 text-lg text-gray-600 dark:text-gray-400">
-                    Predict demand and find the optimal price to maximize profit.
+                <p class="mt-4 text-xl text-gray-300">
+                    Discover the optimal price to maximize profit with smart, data-driven insights.
                 </p>
             </div>
 
-            <div class="bg-white dark:bg-gray-800 shadow-xl rounded-2xl p-8 space-y-6">
+            <div class="bg-gray-800 shadow-xl rounded-2xl p-8 space-y-6">
                 <form id="pricing-form" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- New input for Product Name -->
+                    <!-- Product Name input -->
                     <div class="col-span-2">
-                        <label for="product_name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Product Name</label>
-                        <input type="text" name="product_name" id="product_name" value="Smartphone Pro 256GB Black" required
-                               class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-3">
+                        <label for="product_name" class="block text-sm font-medium text-gray-300">Product Name</label>
+                        <select name="product_name" id="product_name" required
+                                class="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-3">
+                            {% for product_name in product_names %}
+                            <option value="{{ product_name }}">{{ product_name }}</option>
+                            {% endfor %}
+                        </select>
                     </div>
-                    <!-- New input for Unit Cost -->
+                    <!-- Unit Cost input -->
                     <div class="col-span-2">
-                        <label for="unit_cost" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Cost per Unit ($)</label>
+                        <label for="unit_cost" class="block text-sm font-medium text-gray-300">Cost per Unit ($)</label>
                         <input type="number" name="unit_cost" id="unit_cost" value="100" step="0.01" required
-                               class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-3">
+                               class="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-3">
                     </div>
-                    <!-- Form Inputs -->
+                    <!-- Your Price input -->
                     <div class="col-span-1">
-                        <label for="unit_price" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Your Price ($)</label>
+                        <label for="unit_price" class="block text-sm font-medium text-gray-300">Your Price ($)</label>
                         <input type="number" name="unit_price" id="unit_price" value="300" step="0.01" required
-                               class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-3">
+                               class="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-3">
                     </div>
+                    <!-- Competitor 1 input -->
                     <div class="col-span-1">
-                        <label for="comp_1" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Competitor 1 Price ($)</label>
+                        <label for="comp_1" class="block text-sm font-medium text-gray-300">Competitor 1 Price ($)</label>
                         <input type="number" name="comp_1" id="comp_1" value="280" step="0.01" required
-                               class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-3">
+                               class="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-3">
                     </div>
+                    <!-- Competitor 2 input -->
                     <div class="col-span-1">
-                        <label for="comp_2" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Competitor 2 Price ($)</label>
+                        <label for="comp_2" class="block text-sm font-medium text-gray-300">Competitor 2 Price ($)</label>
                         <input type="number" name="comp_2" id="comp_2" value="310" step="0.01" required
-                               class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-3">
+                               class="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-3">
                     </div>
+                    <!-- Competitor 3 input -->
                     <div class="col-span-1">
-                        <label for="comp_3" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Competitor 3 Price ($)</label>
+                        <label for="comp_3" class="block text-sm font-medium text-gray-300">Competitor 3 Price ($)</label>
                         <input type="number" name="comp_3" id="comp_3" value="290" step="0.01" required
-                               class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-3">
+                               class="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-3">
                     </div>
+                    <!-- Holiday input -->
                     <div class="col-span-1">
-                        <label for="holiday" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Holiday</label>
+                        <label for="holiday" class="block text-sm font-medium text-gray-300">Holiday</label>
                         <select name="holiday" id="holiday" required
-                                class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-3">
+                                class="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-3">
                             <option value="0">No</option>
                             <option value="1">Yes</option>
                         </select>
                     </div>
+                    <!-- Weekend input -->
                     <div class="col-span-1">
-                        <label for="weekend" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Weekend</label>
+                        <label for="weekend" class="block text-sm font-medium text-gray-300">Weekend</label>
                         <select name="weekend" id="weekend" required
-                                class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-3">
+                                class="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-3">
                             <option value="0">No</option>
                             <option value="1" selected>Yes</option>
                         </select>
                     </div>
+                    <!-- Month input -->
                     <div class="col-span-2">
-                        <label for="month" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Month (1-12)</label>
+                        <label for="month" class="block text-sm font-medium text-gray-300">Month (1-12)</label>
                         <input type="number" name="month" id="month" value="8" min="1" max="12" required
-                               class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-3">
+                               class="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-3">
                     </div>
 
                     <div class="col-span-2">
                         <button type="submit" id="submit-button"
-                                class="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-300 ease-in-out">
-                            Predict & Optimize
+                                class="btn-animate w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-lg font-bold text-white bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-300 ease-in-out">
+                            📈 Predict & Optimize
                         </button>
                     </div>
                 </form>
 
-                <div id="loading" class="hidden text-center text-indigo-500">
-                    <svg class="animate-spin h-8 w-8 text-indigo-500 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <div id="loading" class="hidden text-center text-indigo-400">
+                    <svg class="animate-spin h-8 w-8 text-indigo-400 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
@@ -103,35 +119,35 @@
 
                 <div id="results" class="mt-8 space-y-6 hidden">
                     <!-- Current Price Prediction -->
-                    <div class="bg-blue-50 dark:bg-blue-900 border-l-4 border-blue-500 p-4 rounded-lg shadow-md">
-                        <h4 class="text-xl font-bold text-blue-800 dark:text-blue-200">Your Price Prediction</h4>
-                        <div class="mt-2 text-lg">
-                            <p>Predicted Demand: <span class="font-semibold" id="user-demand"></span> units</p>
-                            <p>Expected Revenue: <span class="font-semibold" id="user-revenue"></span></p>
-                            <p>Expected Profit: <span class="font-semibold" id="user-profit"></span></p>
+                    <div class="bg-gray-700 border-l-4 border-blue-500 p-4 rounded-lg shadow-md">
+                        <h4 class="text-xl font-bold text-blue-300">Your Price Prediction</h4>
+                        <div class="mt-2 text-lg text-gray-300">
+                            <p>Predicted Demand: <span class="font-semibold text-white" id="user-demand"></span> units</p>
+                            <p>Expected Revenue: <span class="font-semibold text-white" id="user-revenue"></span></p>
+                            <p>Expected Profit: <span class="font-semibold text-white" id="user-profit"></span></p>
                         </div>
                     </div>
 
                     <!-- Optimal Price Recommendation -->
-                    <div class="bg-green-50 dark:bg-green-900 border-l-4 border-green-500 p-4 rounded-lg shadow-md">
-                        <h4 class="text-xl font-bold text-green-800 dark:text-green-200">Recommended Optimal Price</h4>
-                        <div class="mt-2 text-lg">
-                            <p>Optimal Price: <span class="font-semibold text-2xl" id="optimal-price"></span></p>
-                            <p>Max Predicted Demand: <span class="font-semibold" id="optimal-demand"></span> units</p>
-                            <p>Max Expected Profit: <span class="font-semibold" id="optimal-profit"></span></p>
+                    <div class="bg-gray-700 border-l-4 border-green-500 p-4 rounded-lg shadow-md">
+                        <h4 class="text-xl font-bold text-green-300">Recommended Optimal Price</h4>
+                        <div class="mt-2 text-lg text-gray-300">
+                            <p>Optimal Price: <span class="font-semibold text-2xl text-white" id="optimal-price"></span></p>
+                            <p>Max Predicted Demand: <span class="font-semibold text-white" id="optimal-demand"></span> units</p>
+                            <p>Max Expected Profit: <span class="font-semibold text-white" id="optimal-profit"></span></p>
                         </div>
                     </div>
                     
                     <!-- Plot Section -->
-                    <div class="bg-gray-50 dark:bg-gray-900 rounded-2xl p-6 shadow-md relative w-full h-96">
-                        <h4 class="text-xl font-bold text-center mb-4">Demand & Profit Curves</h4>
+                    <div class="bg-gray-700 rounded-2xl p-6 shadow-md relative w-full h-96">
+                        <h4 class="text-xl font-bold text-center mb-4 text-white">Demand & Profit Curves</h4>
                         <canvas id="pricing-chart" class="w-full h-full"></canvas>
                     </div>
                 </div>
 
-                <div id="error-message" class="hidden bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-lg" role="alert">
+                <div id="error-message" class="hidden bg-red-900 border-l-4 border-red-500 text-red-300 p-4 rounded-lg" role="alert">
                     <p class="font-bold">An error occurred</p>
-                    <p id="error-text">Something went wrong. Please check your inputs.</p>
+                    <p id="error-text" class="text-sm mt-1"></p>
                 </div>
             </div>
         </div>
@@ -199,16 +215,16 @@
                         {
                             label: 'Predicted Demand',
                             data: data.plot_data.demand,
-                            borderColor: 'rgb(59, 130, 246)',
-                            backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                            borderColor: 'rgb(129, 212, 250)', // Light blue
+                            backgroundColor: 'rgba(129, 212, 250, 0.2)',
                             yAxisID: 'y_demand',
                             tension: 0.4
                         },
                         {
                             label: 'Predicted Profit',
                             data: data.plot_data.profit,
-                            borderColor: 'rgb(16, 185, 129)',
-                            backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                            borderColor: 'rgb(154, 255, 154)', // Light green
+                            backgroundColor: 'rgba(154, 255, 154, 0.2)',
                             yAxisID: 'y_profit',
                             tension: 0.4
                         }
@@ -272,7 +288,8 @@
                                         text: 'Profit vs. Price Curve',
                                         font: {
                                             size: 16
-                                        }
+                                        },
+                                        color: 'rgb(229, 231, 235)' // Light gray
                                     },
                                     tooltip: {
                                         callbacks: {
@@ -286,8 +303,11 @@
                                     x: {
                                         title: {
                                             display: true,
-                                            text: 'Unit Price ($)'
+                                            text: 'Unit Price ($)',
+                                            color: 'rgb(229, 231, 235)'
                                         },
+                                        ticks: { color: 'rgb(156, 163, 175)' },
+                                        grid: { color: 'rgba(107, 114, 128, 0.5)' }
                                     },
                                     y_demand: {
                                         type: 'linear',
@@ -295,8 +315,11 @@
                                         position: 'left',
                                         title: {
                                             display: true,
-                                            text: 'Predicted Demand (units)'
-                                        }
+                                            text: 'Predicted Demand (units)',
+                                            color: 'rgb(129, 212, 250)'
+                                        },
+                                        ticks: { color: 'rgb(129, 212, 250)' },
+                                        grid: { color: 'rgba(107, 114, 128, 0.5)' }
                                     },
                                     y_profit: {
                                         type: 'linear',
@@ -304,11 +327,11 @@
                                         position: 'right',
                                         title: {
                                             display: true,
-                                            text: 'Predicted Profit ($)'
+                                            text: 'Predicted Profit ($)',
+                                            color: 'rgb(154, 255, 154)'
                                         },
-                                        grid: {
-                                            drawOnChartArea: false,
-                                        },
+                                        ticks: { color: 'rgb(154, 255, 154)' },
+                                        grid: { drawOnChartArea: false },
                                     },
                                 },
                             }

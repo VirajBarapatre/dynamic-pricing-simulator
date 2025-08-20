@@ -24,10 +24,10 @@ FEATURES = ['product_name', 'unit_price', 'comp_1', 'comp_2', 'comp_3', 'holiday
 # Machine Learning Model Training with Pipeline
 # ====================================================================
 
-# This function generates a synthetic dataset for demonstration.
-# In a real project, you would replace this with loading your own data.
+# This function generates a synthetic dataset with unique price sensitivities.
+# This makes the optimal price different for each product.
 def load_and_prepare_data():
-    """Generates a synthetic dataset with product names."""
+    """Generates a synthetic dataset with product names and price sensitivities."""
     product_names = [
         "Smartphone Pro 256GB Black",
         "Smartphone Lite 64GB Blue",
@@ -38,6 +38,19 @@ def load_and_prepare_data():
         "Gaming Mouse G502 HERO",
         "Wireless Keyboard K400",
     ]
+
+    # Assign a unique price sensitivity to each product
+    product_sensitivity = {
+        "Smartphone Pro 256GB Black": 0.6,
+        "Smartphone Lite 64GB Blue": 0.9,
+        "Laptop XPS 15 inch": 0.7,
+        "Laptop ThinkPad E14": 0.8,
+        "Smart Watch Series 7 GPS": 1.0,
+        "Smart Watch GT Pro": 1.1,
+        "Gaming Mouse G502 HERO": 1.2,
+        "Wireless Keyboard K400": 1.3,
+    }
+
     np.random.seed(42)
     data = {
         'product_name': np.random.choice(product_names, 1000),
@@ -50,9 +63,12 @@ def load_and_prepare_data():
         'month': np.random.randint(1, 13, 1000)
     }
     df = pd.DataFrame(data)
+
+    # Use the price sensitivity to make demand more realistic
+    df['price_sensitivity'] = df['product_name'].map(product_sensitivity)
     df['qty'] = (
         1500 - 
-        df['unit_price'] * 0.8 + 
+        df['unit_price'] * df['price_sensitivity'] +
         df['comp_1'] * 0.1 + 
         df['comp_2'] * 0.05 + 
         df['holiday'] * 50 + 
@@ -63,7 +79,6 @@ def load_and_prepare_data():
     
     return df
 
-# The function that trains the model pipeline
 def train_model():
     """
     Loads data, sets up a preprocessing pipeline, and trains the model.
@@ -74,21 +89,20 @@ def train_model():
     text_feature = 'product_name'
     target_variable = 'qty'
 
-    # Create a preprocessor using ColumnTransformer
     preprocessor = ColumnTransformer(
         transformers=[
             ('text_vectorizer', TfidfVectorizer(max_features=100), text_feature)
         ],
-        remainder='passthrough'  # Keep the numerical features as they are
+        remainder='passthrough',
+        verbose_feature_names_out=False
     )
 
-    # Create a pipeline that combines preprocessing and the model
     model_pipeline = Pipeline(steps=[
         ('preprocessor', preprocessor),
         ('regressor', RandomForestRegressor(n_estimators=100, random_state=42))
     ])
     
-    X = df.drop(columns=[target_variable])
+    X = df.drop(columns=[target_variable, 'price_sensitivity'])
     y = df[target_variable]
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
@@ -101,7 +115,6 @@ def train_model():
 
     return model_pipeline, df
 
-# Train the model once when the app starts
 model, df_original = train_model()
 
 # ====================================================================
@@ -117,14 +130,13 @@ def find_optimal_price(base_features, unit_cost):
 
     price_range = np.linspace(df_original['unit_price'].min(), df_original['unit_price'].max(), 100)
     
-    # Create DataFrame for prediction, ensuring all features are present
     prediction_data = []
     for p in price_range:
         temp_data = base_features.copy()
         temp_data['unit_price'] = p
         prediction_data.append(temp_data)
 
-    df_temp = pd.DataFrame(prediction_data, columns=base_features.keys())
+    df_temp = pd.DataFrame(prediction_data, columns=FEATURES)
 
     predicted_demand_array = model.predict(df_temp)
     predicted_revenue_array = price_range * predicted_demand_array
@@ -148,7 +160,13 @@ def find_optimal_price(base_features, unit_cost):
 @app.route("/")
 def home():
     """Renders the main HTML page."""
-    return render_template("index.html")
+    if df_original is None:
+        return "Error: Data could not be loaded.", 500
+    
+    product_names = df_original['product_name'].unique().tolist()
+    product_names.sort()
+    
+    return render_template("index.html", product_names=product_names)
 
 @app.route("/predict", methods=["POST"])
 def predict():
@@ -159,7 +177,6 @@ def predict():
         return jsonify({"success": False, "error": "Model not trained. Check server logs."}), 500
 
     try:
-        # Get user input from the form, including the new product_name field
         user_input_data = {
             "product_name": request.form['product_name'],
             "unit_cost": float(request.form['unit_cost']),
@@ -172,26 +189,21 @@ def predict():
             "month": int(request.form['month'])
         }
 
-        # Create the DataFrame for prediction, explicitly setting the column order
         df_input_features = {k: v for k, v in user_input_data.items() if k != 'unit_cost'}
         df_input = pd.DataFrame([df_input_features], columns=FEATURES)
         
-        # Predict demand, revenue, and profit for the user's chosen price
         user_demand = model.predict(df_input)[0]
         user_revenue = user_input_data["unit_price"] * user_demand
         user_profit = user_revenue - (user_input_data["unit_cost"] * user_demand)
 
-        # Find the overall optimal price for profit maximization
-        base_features = {k: v for k, v in user_input_data.items() if k not in ['unit_cost', 'unit_price']}
-        optimal_results = find_optimal_price(base_features, user_input_data['unit_cost'])
+        base_features_for_optim = {k: v for k, v in user_input_data.items() if k not in ['unit_cost', 'unit_price']}
+        optimal_results = find_optimal_price(base_features_for_optim, user_input_data['unit_cost'])
 
-        # Generate data for the plots (Demand Curve and Profit Curve)
         price_range = np.linspace(df_original['unit_price'].min(), df_original['unit_price'].max(), 100)
         
-        # Build the list of dictionaries for the plot data, ensuring correct order
         plot_data_list = []
         for p in price_range:
-            temp_data = base_features.copy()
+            temp_data = base_features_for_optim.copy()
             temp_data['unit_price'] = p
             plot_data_list.append(temp_data)
         
@@ -201,7 +213,6 @@ def predict():
         plot_revenue = (price_range * np.array(plot_demand)).tolist()
         plot_profit = (np.array(plot_revenue) - (user_input_data['unit_cost'] * np.array(plot_demand))).tolist()
 
-        # Prepare the final JSON response
         response = {
             "success": True,
             "user_prediction": {
@@ -220,21 +231,17 @@ def predict():
         return jsonify(response)
 
     except KeyError as e:
-        # Catch specific KeyErrors for missing form fields
         error_message = f"Missing form field: {e}. Please ensure all form fields are filled correctly."
         print(f"Error processing request: {error_message}")
         return jsonify({"success": False, "error": error_message}), 400
     except ValueError as e:
-        # Catch ValueErrors for invalid numeric input
         error_message = f"Invalid input: {e}. Please ensure all numeric fields are valid."
         print(f"Error processing request: {error_message}")
         return jsonify({"success": False, "error": error_message}), 400
     except Exception as e:
-        # Catch any other unexpected errors
         error_message = f"An unexpected error occurred: {e}"
         print(f"Error processing request: {error_message}")
         return jsonify({"success": False, "error": error_message}), 400
 
 if __name__ == "__main__":
-    # Start the Flask development server
     app.run(debug=True)
