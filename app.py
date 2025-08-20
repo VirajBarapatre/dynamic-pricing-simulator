@@ -59,16 +59,17 @@ model, df_original = train_model()
 # Helper Function for Optimal Price Calculation
 # ====================================================================
 
-def find_optimal_price(base_features):
+def find_optimal_price(base_features, unit_cost):
     """
-    Finds the optimal unit price that maximizes predicted revenue.
+    Finds the optimal unit price that maximizes predicted profit.
     
     Args:
         base_features (dict): A dictionary of the user's input features
                               (comp_1, comp_2, etc.), excluding unit_price.
+        unit_cost (float): The cost to produce one unit of the product.
 
     Returns:
-        A dictionary with the optimal price, demand, and revenue.
+        A dictionary with the optimal price, demand, and profit.
     """
     if df_original is None:
         return None
@@ -89,17 +90,20 @@ def find_optimal_price(base_features):
     # Predict demand for all prices in the range
     predicted_demand_array = model.predict(df_temp)
     predicted_revenue_array = price_range * predicted_demand_array
+    
+    # Calculate profit for each price point
+    predicted_profit_array = predicted_revenue_array - (unit_cost * predicted_demand_array)
 
-    # Find the maximum revenue and its corresponding price and demand
-    max_revenue_index = np.argmax(predicted_revenue_array)
-    max_revenue = predicted_revenue_array[max_revenue_index]
-    optimal_price = price_range[max_revenue_index]
-    optimal_demand = predicted_demand_array[max_revenue_index]
+    # Find the maximum profit and its corresponding price and demand
+    max_profit_index = np.argmax(predicted_profit_array)
+    max_profit = predicted_profit_array[max_profit_index]
+    optimal_price = price_range[max_profit_index]
+    optimal_demand = predicted_demand_array[max_profit_index]
 
     return {
         'optimal_price': round(optimal_price, 2),
         'optimal_demand': round(optimal_demand, 2),
-        'max_revenue': round(max_revenue, 2)
+        'max_profit': round(max_profit, 2)
     }
 
 # ====================================================================
@@ -122,6 +126,7 @@ def predict():
     try:
         # Get user input from the form
         user_input_data = {
+            "unit_cost": float(request.form['unit_cost']),
             "unit_price": float(request.form['unit_price']),
             "comp_1": float(request.form['comp_1']),
             "comp_2": float(request.form['comp_2']),
@@ -132,17 +137,19 @@ def predict():
         }
 
         # Create the DataFrame for prediction, explicitly setting the column order
-        df_input = pd.DataFrame([user_input_data], columns=FEATURES)
+        df_input_features = {k: v for k, v in user_input_data.items() if k != 'unit_cost'}
+        df_input = pd.DataFrame([df_input_features], columns=FEATURES)
         
-        # Predict demand and revenue for the user's chosen price
+        # Predict demand, revenue, and profit for the user's chosen price
         user_demand = model.predict(df_input)[0]
         user_revenue = user_input_data["unit_price"] * user_demand
+        user_profit = user_revenue - (user_input_data["unit_cost"] * user_demand)
 
-        # Find the overall optimal price for revenue maximization
-        base_features = {k: v for k, v in user_input_data.items() if k != 'unit_price'}
-        optimal_results = find_optimal_price(base_features)
+        # Find the overall optimal price for profit maximization
+        base_features = {k: v for k, v in user_input_data.items() if k not in ['unit_cost', 'unit_price']}
+        optimal_results = find_optimal_price(base_features, user_input_data['unit_cost'])
 
-        # Generate data for the plots (Demand Curve and Revenue Curve)
+        # Generate data for the plots (Demand Curve and Profit Curve)
         price_range = np.linspace(df_original['unit_price'].min(), df_original['unit_price'].max(), 100)
         
         # Build the list of dictionaries for the plot data, ensuring correct order
@@ -156,19 +163,21 @@ def predict():
 
         plot_demand = model.predict(df_plot).tolist()
         plot_revenue = (price_range * np.array(plot_demand)).tolist()
-        
+        plot_profit = (np.array(plot_revenue) - (user_input_data['unit_cost'] * np.array(plot_demand))).tolist()
+
         # Prepare the final JSON response
         response = {
             "success": True,
             "user_prediction": {
                 "demand": round(user_demand, 2),
                 "revenue": round(user_revenue, 2),
+                "profit": round(user_profit, 2)
             },
             "optimal_prediction": optimal_results,
             "plot_data": {
                 "prices": price_range.tolist(),
                 "demand": plot_demand,
-                "revenue": plot_revenue,
+                "profit": plot_profit,
             }
         }
         
